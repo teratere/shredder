@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>感情・ストレス吐き出しシュレッダー</title>
+  <style>
+    /* ========================================================
+       1. リセット & 基本テーマ設定 (完全スタンドアロンCSS)
+       ======================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg-dark: #0f0f11;
+      --card-bg: #18181c;
+      --card-border: #2a2a30;
+      --text-main: #f0f0f5;
+      --text-sub: #9e9ea8;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --accent-emerald: #10b981;
+      --accent-cyan: #06b6d4;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* ========================================================
+       2. ヘッダー
+       ======================================================== */
+    header {
+      width: 100%;
+      background: rgba(24, 24, 28, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-sub);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      transform: translateX(-2px);
+    }
+
+    .header-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .btn-sound {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-sub);
+      border-radius: 9999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-sound:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .btn-sound.muted {
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    /* ========================================================
+       3. メインエリア & 便箋 UI
+       ======================================================== */
+    main {
+      flex: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .view-container {
+      width: 100%;
+      max-width: 580px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* 入力ビュー */
+    #input-view {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 20px;
+    }
+
+    .paper-wrapper {
+      position: relative;
+      width: 100%;
+      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      background: #fbf7ee;
+    }
+
+    /* リアル和紙・便箋エフェクト */
+    .paper-inner {
+      background-color: #fbf7ee;
+      /* 縦の折り目・便箋風の薄い横罫線 */
+      background-image: 
+        repeating-linear-gradient(transparent, transparent 31px, rgba(160, 140, 110, 0.25) 31px, rgba(160, 140, 110, 0.25) 32px),
+        linear-gradient(90deg, rgba(235, 75, 75, 0.12) 0px, rgba(235, 75, 75, 0.12) 1px, transparent 1px, transparent 100%);
+      background-position: 0 12px, 44px 0;
+      padding: 24px 20px 20px 54px;
+      position: relative;
+    }
+
+    .paper-inner::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 50% 50%, transparent 60%, rgba(120, 100, 70, 0.08) 100%);
+      pointer-events: none;
+    }
+
+    .paper-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #928372;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .paper-textarea {
+      width: 100%;
+      height: 240px;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: vertical;
+      font-size: 15px;
+      line-height: 32px;
+      color: #2c251f;
+      font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .paper-textarea::placeholder {
+      color: #b0a597;
+      line-height: 32px;
+      font-style: italic;
+    }
+
+    .paper-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(160, 140, 110, 0.3);
+      font-size: 12px;
+      color: #8c7d6c;
+    }
+
+    /* モード選択パネル */
+    .mode-select-box {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .mode-select-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .mode-btn {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      color: var(--text-sub);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .mode-btn .icon {
+      font-size: 20px;
+    }
+    .mode-btn .name {
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .mode-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+    }
+    .mode-btn.active[data-mode="shred"] {
+      border-color: rgba(239, 68, 68, 0.6);
+      background: rgba(239, 68, 68, 0.12);
+      color: #fca5a5;
+    }
+    .mode-btn.active[data-mode="burn"] {
+      border-color: rgba(245, 158, 11, 0.6);
+      background: rgba(245, 158, 11, 0.12);
+      color: #fcd34d;
+    }
+    .mode-btn.active[data-mode="void"] {
+      border-color: rgba(139, 92, 246, 0.6);
+      background: rgba(139, 92, 246, 0.15);
+      color: #c4b5fd;
+    }
+
+    .btn-execute {
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      border: none;
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.5);
+      transition: all 0.2s ease;
+    }
+    .btn-execute:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px -4px rgba(239, 68, 68, 0.6);
+    }
+    .btn-execute:active {
+      transform: scale(0.98);
+    }
+    .btn-execute:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ========================================================
+       4. 抹消完了 & 深呼吸ガイド (画像修復対象エリア)
+       ======================================================== */
+    #care-view {
+      display: none;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 28px 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20px;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .badge-success {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 9999px;
+    }
+
+    .care-heading {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.01em;
+      margin-top: 4px;
+    }
+    .care-subtitle {
+      font-size: 13px;
+      color: var(--text-sub);
+      max-width: 420px;
+      line-height: 1.6;
+      margin-top: 4px;
+    }
+
+    /* 呼吸パターンタブ セレクター */
+    .breathe-tabs-box {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .breathe-tabs-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      padding: 0 4px;
+    }
+    .breathe-pattern-name {
+      color: var(--accent-cyan);
+      font-weight: 800;
+    }
+
+    .breathe-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      width: 100%;
+    }
+    .tab-btn {
+      background: #111114;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 8px 4px;
+      color: var(--text-sub);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .tab-btn .tab-icon {
+      font-size: 15px;
+    }
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+    .tab-btn.active {
+      border-color: rgba(6, 182, 212, 0.6);
+      background: rgba(6, 182, 212, 0.12);
+      color: #67e8f9;
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+    }
+
+    /* パターン説明カード */
+    .pattern-card {
+      background: #121215;
+      border: 1px solid #24242a;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .pattern-card-title {
+      font-weight: 700;
+      color: #67e8f9;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pattern-card-desc {
+      color: var(--text-sub);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    /* 呼吸アニメーション サークル */
+    .breathe-widget {
+      width: 100%;
+      background: #101013;
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .breathe-circle-area {
+      position: relative;
+      width: 190px;
+      height: 190px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .breathe-outer-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+    }
+    .breathe-mid-ring {
+      position: absolute;
+      inset: 15px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      pointer-events: none;
+    }
+
+    .breathe-bubble {
+      width: 105px;
+      height: 105px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 1s ease, border-color 0.4s ease;
+      transform: scale(1);
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
+      border: 2px solid rgba(103, 232, 249, 0.8);
+      background: radial-gradient(circle at 35% 35%, rgba(6, 182, 212, 0.4), rgba(16, 185, 129, 0.2));
+    }
+    .breathe-bubble.phase-inhale {
+      transform: scale(1.45);
+      border-color: #67e8f9;
+      box-shadow: 0 0 45px rgba(6, 182, 212, 0.55);
+      background: radial-gradient(circle at 35% 35%, rgba(6, 182, 212, 0.5), rgba(59, 130, 246, 0.3));
+    }
+    .breathe-bubble.phase-hold {
+      transform: scale(1.35);
+      border-color: #fcd34d;
+      box-shadow: 0 0 35px rgba(245, 158, 11, 0.45);
+      background: radial-gradient(circle at 35% 35%, rgba(245, 158, 11, 0.4), rgba(217, 119, 6, 0.2));
+    }
+    .breathe-bubble.phase-exhale {
+      transform: scale(0.85);
+      border-color: rgba(148, 163, 184, 0.6);
+      box-shadow: 0 0 15px rgba(148, 163, 184, 0.2);
+      background: radial-gradient(circle at 35% 35%, rgba(71, 85, 105, 0.4), rgba(30, 41, 59, 0.5));
+    }
+
+    .bubble-action {
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.08em;
+    }
+    .bubble-count {
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+      margin-top: -2px;
+    }
+
+    .breathe-guide-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+      min-height: 20px;
+    }
+
+    .btn-toggle-breathe {
+      background: #1c1c22;
+      border: 1px solid var(--card-border);
+      color: var(--text-sub);
+      border-radius: 8px;
+      padding: 6px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-toggle-breathe:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .btn-reset-paper {
+      width: 100%;
+      background: #24242c;
+      border: 1px solid #383844;
+      color: #f1f5f9;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-reset-paper:hover {
+      background: #2f2f3a;
+      transform: translateY(-1px);
+    }
+
+    /* ========================================================
+       5. アニメーション実行用 Canvas
+       ======================================================== */
+    #anim-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    /* ========================================================
+       6. フッター
+       ======================================================== */
+    footer {
+      width: 100%;
+      border-top: 1px solid var(--card-border);
+      background: #0b0b0d;
+      padding: 16px;
+      text-align: center;
+      font-size: 11px;
+      color: #71717a;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 480px) {
+      .header-inner { padding: 10px 12px; }
+      .paper-inner { padding: 20px 14px 16px 42px; }
+      .breathe-tabs { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= ヘッダー ================= -->
+  <header>
+    <div class="header-inner">
+      <a href="../" class="btn-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span>Apps Hub</span>
+      </a>
+
+      <div class="header-title-wrap">
+        <span style="font-size: 18px;">🗑️</span>
+        <h1 class="header-title">感情・ストレス吐き出しシュレッダー</h1>
+      </div>
+
+      <button id="btn-sound-toggle" class="btn-sound" onclick="toggleMute()" title="打鍵音・演出音の切替">
+        <span id="sound-icon">🔊</span>
+        <span id="sound-label">ON</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= メイン ================= -->
+  <main>
+    <canvas id="anim-canvas"></canvas>
+
+    <div class="view-container">
+
+      <!-- 1. 入力画面 -->
+      <section id="input-view">
+        <div class="paper-wrapper" id="paper-box">
+          <div class="paper-inner">
+            <div class="paper-header">
+              <span>CONFIDENTIAL // EMOTIONAL DISCHARGE</span>
+              <span id="char-counter">0 文字</span>
+            </div>
+            <textarea
+              id="stress-text"
+              class="paper-textarea"
+              placeholder="誰にも見せられない愚痴、怒り、悔しさ、不安など、心の中の感情を何でも書き殴ってください..."
+              oninput="handleTyping(event)"
+            ></textarea>
+            <div class="paper-footer">
+              <span>🔒 外部送信なし / 保存ゼロ</span>
+              <span>紙片抹消準備完了</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 抹消モード選択 -->
+        <div class="mode-select-box">
+          <div class="mode-select-title">
+            <span>抹消・処分方式を選択</span>
+            <span id="mode-badge" style="color: #f87171;">クロスカット裁断</span>
+          </div>
+          <div class="mode-grid">
+            <button class="mode-btn active" data-mode="shred" onclick="setMode('shred')">
+              <span class="icon">✂️</span>
+              <span class="name">クロスカット</span>
+            </button>
+            <button class="mode-btn" data-mode="burn" onclick="setMode('burn')">
+              <span class="icon">🔥</span>
+              <span class="name">お焚き上げ</span>
+            </button>
+            <button class="mode-btn" data-mode="void" onclick="setMode('void')">
+              <span class="icon">🕳️</span>
+              <span class="name">宇宙虚無消滅</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 抹消実行ボタン -->
+        <button id="btn-exec" class="btn-execute" onclick="executeDisposal()">
+          <span id="exec-icon">✂️</span>
+          <span id="exec-text">紙片ごと完全に裁断・抹消する</span>
+        </button>
+      </section>
+
+      <!-- 2. 抹消完了 & 深呼吸ガイド (画像修復対応・完全CSS装飾) -->
+      <section id="care-view">
+        <div>
+          <div class="badge-success">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            <span>メモリから完全抹消済（保存ゼロ）</span>
+          </div>
+          <h2 class="care-heading">きれいさっぱり消滅しました</h2>
+          <p class="care-subtitle">
+            書き殴った感情は完全に消え去りました。気分に合わせた呼吸法を選び、心拍と自律神経を整えましょう。
+          </p>
+        </div>
+
+        <!-- 呼吸パターン切替タブ -->
+        <div class="breathe-tabs-box">
+          <div class="breathe-tabs-header">
+            <span>呼吸パターンを選択:</span>
+            <span id="cur-pattern-name" class="breathe-pattern-name">4-7-8 呼吸法</span>
+          </div>
+          <div class="breathe-tabs">
+            <button class="tab-btn active" id="tab-478" onclick="setBreathingPattern('478')">
+              <span class="tab-icon">🌙</span>
+              <span>4-7-8呼吸</span>
+            </button>
+            <button class="tab-btn" id="tab-box" onclick="setBreathingPattern('box')">
+              <span class="tab-icon">🛡️</span>
+              <span>ボックス呼吸</span>
+            </button>
+            <button class="tab-btn" id="tab-sigh" onclick="setBreathingPattern('sigh')">
+              <span class="tab-icon">⚡</span>
+              <span>生理的ため息</span>
+            </button>
+            <button class="tab-btn" id="tab-2to1" onclick="setBreathingPattern('2to1')">
+              <span class="tab-icon">🍃</span>
+              <span>2:1 呼吸法</span>
+            </button>
+          </div>
+
+          <!-- 各呼吸法の特徴解説カード -->
+          <div class="pattern-card">
+            <div class="pattern-card-title">
+              <span id="card-pattern-icon">🌙</span>
+              <span id="card-pattern-title">4-7-8 呼吸法（脱力・安眠）</span>
+            </div>
+            <p id="card-pattern-desc" class="pattern-card-desc">
+              吸う時間の2倍かけて細く長く吐き出すことで、副交感神経を強く刺激。高ぶった感情やイライラを脱力させ、心身を急速に落ち着かせます。
+            </p>
+          </div>
+        </div>
+
+        <!-- 呼吸アニメーション サークル -->
+        <div class="breathe-widget">
+          <div class="breathe-circle-area">
+            <div class="breathe-outer-ring"></div>
+            <div class="breathe-mid-ring"></div>
+            <div id="breathe-bubble" class="breathe-bubble">
+              <span id="bubble-action" class="bubble-action">すって</span>
+              <span id="bubble-count" class="bubble-count">4</span>
+            </div>
+          </div>
+
+          <p id="breathe-guide-msg" class="breathe-guide-text">鼻から静かに息を吸い込みます (4秒)</p>
+
+          <button id="btn-pause-breathe" class="btn-toggle-breathe" onclick="toggleBreathe()">
+            <span>⏸️</span>
+            <span>一時停止</span>
+          </button>
+        </div>
+
+        <!-- 再スタートボタン -->
+        <button class="btn-reset-paper" onclick="resetApp()">
+          <span>✍️</span>
+          <span>新しい便箋を用意する（もう一度吐き出す）</span>
+        </button>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= フッター ================= -->
+  <footer>
+    ※個人開発プロトタイプにつき無保証・自己責任にてご利用ください（データは端末内完結・サポート対象外）
+  </footer>
+
+  <!-- ================= スクリプト ================= -->
+  <script>
+    /* --- 音声エンジン (Web Audio API プロシージャル合成) --- */
+    let audioCtx = null;
+    let isMuted = false;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      const btn = document.getElementById('btn-sound-toggle');
+      const icon = document.getElementById('sound-icon');
+      const label = document.getElementById('sound-label');
+      if (isMuted) {
+        btn.classList.add('muted');
+        icon.textContent = '🔇';
+        label.textContent = 'OFF';
+      } else {
+        btn.classList.remove('muted');
+        icon.textContent = '🔊';
+        label.textContent = 'ON';
+        getAudioContext();
+      }
+    }
+
+    // カリカリ打鍵音
+    function playTypingSound() {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600 + Math.random() * 800, ctx.currentTime);
+        gain.gain.setValueAtTime(0.018, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+      } catch (e) {}
+    }
+
+    // 抹消エフェクト音
+    function playDisposalSound(type) {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        if (type === 'shred') {
+          // ガガガッ・ジャキジャキ裁断ノイズ
+          const bufferSize = ctx.sampleRate * 2.2;
+          const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 1.5));
+          }
+          const noise = ctx.createBufferSource();
+          noise.buffer = buffer;
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(1400, now);
+          filter.Q.setValueAtTime(3.0, now);
+
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+          noise.start(now);
+        } else if (type === 'burn') {
+          // パチパチ燃焼音 & じっくり炙られるチリチリ熱風音
+          const dur = 4.2;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(65, now);
+          osc.frequency.linearRampToValueAtTime(35, now + dur);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.linearRampToValueAtTime(0.001, now + dur);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + dur);
+
+          // 熱風ヒスノイズ（ブロー）
+          const bufLen = ctx.sampleRate * dur;
+          const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+          const bData = buf.getChannelData(0);
+          for (let i = 0; i < bufLen; i++) {
+            bData[i] = (Math.random() * 2 - 1) * Math.sin((i / bufLen) * Math.PI);
+          }
+          const hiss = ctx.createBufferSource();
+          hiss.buffer = buf;
+          const hissFilter = ctx.createBiquadFilter();
+          hissFilter.type = 'bandpass';
+          hissFilter.frequency.setValueAtTime(750, now);
+          hissFilter.Q.setValueAtTime(1.5, now);
+          const hissGain = ctx.createGain();
+          hissGain.gain.setValueAtTime(0.12, now);
+          hissGain.gain.linearRampToValueAtTime(0.001, now + dur);
+          hiss.connect(hissFilter);
+          hissFilter.connect(hissGain);
+          hissGain.connect(ctx.destination);
+          hiss.start(now);
+
+          // 密集クラックル（紙の繊維がチリチリ・パチッと爆ぜる音）
+          for (let k = 0; k < 28; k++) {
+            const crackTime = now + 0.1 + Math.random() * (dur - 0.5);
+            const cOsc = ctx.createOscillator();
+            const cGain = ctx.createGain();
+            cOsc.type = Math.random() > 0.4 ? 'triangle' : 'square';
+            cOsc.frequency.setValueAtTime(1200 + Math.random() * 1600, crackTime);
+            cGain.gain.setValueAtTime(0.06 + Math.random() * 0.05, crackTime);
+            cGain.gain.exponentialRampToValueAtTime(0.0001, crackTime + 0.035);
+            cOsc.connect(cGain);
+            cGain.connect(ctx.destination);
+            cOsc.start(crackTime);
+            cOsc.stop(crackTime + 0.045);
+          }
+        } else if (type === 'void') {
+          // 宇宙・重力降着の超低域スウーシュ
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(140, now);
+          osc.frequency.exponentialRampToValueAtTime(30, now + 1.4);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.linearRampToValueAtTime(0.001, now + 1.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 1.4);
+        }
+      } catch (e) {}
+    }
+
+    // ビッグバン大爆発サウンド（1点凝縮後の炸裂音合成）
+    function playSupernovaSound() {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        // 1. サブベース爆発衝撃波（低音ズドン）
+        const subOsc = ctx.createOscillator();
+        const subGain = ctx.createGain();
+        subOsc.type = 'sine';
+        subOsc.frequency.setValueAtTime(150, now);
+        subOsc.frequency.exponentialRampToValueAtTime(20, now + 1.5);
+        subGain.gain.setValueAtTime(0.5, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+        subOsc.connect(subGain);
+        subGain.connect(ctx.destination);
+        subOsc.start(now);
+        subOsc.stop(now + 1.8);
+
+        // 2. 破裂ホワイトノイズバースト
+        const bufLen = ctx.sampleRate * 1.8;
+        const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufLen; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.3));
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buf;
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'lowpass';
+        noiseFilter.frequency.setValueAtTime(2800, now);
+        noiseFilter.frequency.exponentialRampToValueAtTime(180, now + 1.5);
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.35, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noise.start(now);
+
+        // 3. 星屑キラキラ残響 (スパークルアルペジオ)
+        const chimePitches = [880, 1174, 1396, 1760, 2093, 2793];
+        chimePitches.forEach((freq, idx) => {
+          const cOsc = ctx.createOscillator();
+          const cGain = ctx.createGain();
+          const startTime = now + 0.05 + idx * 0.08;
+          cOsc.type = 'sine';
+          cOsc.frequency.setValueAtTime(freq, startTime);
+          cGain.gain.setValueAtTime(0.06, startTime);
+          cGain.gain.exponentialRampToValueAtTime(0.0001, startTime + 1.2);
+          cOsc.connect(cGain);
+          cGain.connect(ctx.destination);
+          cOsc.start(startTime);
+          cOsc.stop(startTime + 1.3);
+        });
+      } catch (e) {}
+    }
+
+    /* --- 入力 & 抹消モード設定 --- */
+    let currentMode = 'shred';
+    let isExecuting = false;
+    const textarea = document.getElementById('stress-text');
+    const charCounter = document.getElementById('char-counter');
+    const paperBox = document.getElementById('paper-box');
+    const btnExec = document.getElementById('btn-exec');
+
+    function handleTyping(e) {
+      charCounter.textContent = `${textarea.value.length} 文字`;
+      playTypingSound();
+    }
+
+    function setMode(mode) {
+      if (isExecuting) return;
+      currentMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+
+      const badge = document.getElementById('mode-badge');
+      const icon = document.getElementById('exec-icon');
+      const text = document.getElementById('exec-text');
+
+      if (mode === 'shred') {
+        badge.textContent = 'クロスカット裁断';
+        badge.style.color = '#f87171';
+        btnExec.style.background = 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)';
+        btnExec.style.boxShadow = '0 10px 25px -5px rgba(239, 68, 68, 0.5)';
+        icon.textContent = '✂️';
+        text.textContent = '紙片ごと完全に裁断・抹消する';
+      } else if (mode === 'burn') {
+        badge.textContent = 'お焚き上げ焼却';
+        badge.style.color = '#fbbf24';
+        btnExec.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        btnExec.style.boxShadow = '0 10px 25px -5px rgba(245, 158, 11, 0.5)';
+        icon.textContent = '🔥';
+        text.textContent = '火の粉と灰にしてお焚き上げする';
+      } else if (mode === 'void') {
+        badge.textContent = '宇宙虚無消滅';
+        badge.style.color = '#c084fc';
+        btnExec.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)';
+        btnExec.style.boxShadow = '0 10px 25px -5px rgba(139, 92, 246, 0.5)';
+        icon.textContent = '🕳️';
+        text.textContent = '事象の地平面へ吸い込み無に還す';
+      }
+    }
+
+    /* --- Canvas 物理パーティクル & アニメーション --- */
+    const canvas = document.getElementById('anim-canvas');
+    const ctx2d = canvas.getContext('2d');
+    let particles = [];
+    let animReq = null;
+
+    function resizeCanvas() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function executeDisposal() {
+      if (isExecuting) return;
+      getAudioContext();
+
+      if (!textarea.value.trim()) {
+        textarea.placeholder = "※ まずは心の中のモヤモヤをここに書き出してください...";
+        textarea.focus();
+        return;
+      }
+
+      isExecuting = true;
+      btnExec.disabled = true;
+      resizeCanvas();
+      playDisposalSound(currentMode);
+
+      const rect = paperBox.getBoundingClientRect();
+      const mainRect = canvas.getBoundingClientRect();
+      const startX = rect.left - mainRect.left;
+      const startY = rect.top - mainRect.top;
+      const width = rect.width;
+      const height = rect.height;
+
+      particles = [];
+
+      if (currentMode === 'shred') {
+        // 短冊・クロスカット小片粒子
+        const cols = 28;
+        const rows = 18;
+        const pw = width / cols;
+        const ph = height / rows;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            particles.push({
+              x: startX + c * pw,
+              y: startY + r * ph,
+              w: pw * 0.9,
+              h: ph * 0.9,
+              vx: (Math.random() - 0.5) * 4,
+              vy: 2 + Math.random() * 7,
+              rot: Math.random() * Math.PI,
+              vRot: (Math.random() - 0.5) * 0.2,
+              color: Math.random() > 0.2 ? '#fbf7ee' : '#e6decb',
+              alpha: 1
+            });
+          }
+        }
+        paperBox.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        paperBox.style.opacity = '0';
+        paperBox.style.transform = 'translateY(15px) scale(0.98)';
+
+      } else if (currentMode === 'burn') {
+        // 便箋自体のスタイル変化：一気に消さず、まず熱変色（セピア〜黒焦げ）へじわじわ移行
+        paperBox.style.transition = 'filter 3.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 3.8s ease-in, transform 3.8s ease-in';
+        paperBox.style.filter = 'sepia(0.9) saturate(2.4) contrast(1.6) brightness(0.7) drop-shadow(0 0 25px rgba(245, 158, 11, 0.6))';
+        paperBox.style.opacity = '0.05';
+        paperBox.style.transform = 'translateY(-6px) scale(0.99)';
+
+        // 燃焼フロント用ノイズ点の初期化
+        particles = [];
+      } else if (currentMode === 'void') {
+        // 宇宙モード：1点凝縮 ➔ 超新星ビッグバン大爆発
+        const centerX = startX + width / 2;
+        const centerY = startY + height / 2;
+        for (let i = 0; i < 240; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const dist = 60 + Math.random() * (width / 1.3);
+          particles.push({
+            cx: centerX,
+            cy: centerY,
+            angle: angle,
+            dist: dist,
+            speed: 0.07 + Math.random() * 0.06,
+            size: 2 + Math.random() * 4,
+            alpha: 1,
+            color: Math.random() > 0.5 ? '#c084fc' : '#818cf8',
+            state: 'condense'
+          });
+        }
+        paperBox.style.transition = 'transform 1.4s cubic-bezier(0.7, 0, 0.3, 1), opacity 1.2s ease';
+        paperBox.style.transform = 'scale(0.001) rotate(1080deg)';
+        paperBox.style.opacity = '0';
+      }
+
+      let frameCount = 0;
+      let shockwaveRadius = 0;
+      let exploded = false;
+
+      function loop() {
+        ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+        frameCount++;
+
+        if (currentMode === 'shred') {
+          particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.rot += p.vRot;
+            p.alpha -= 0.009;
+            if (p.alpha > 0) {
+              ctx2d.save();
+              ctx2d.translate(p.x, p.y);
+              ctx2d.rotate(p.rot);
+              ctx2d.fillStyle = p.color;
+              ctx2d.globalAlpha = Math.max(0, p.alpha);
+              ctx2d.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+              ctx2d.restore();
+            }
+          });
+        } else if (currentMode === 'burn') {
+          // じっくり這い上がる燃焼フロントの進行率 (0.0 -> 1.05)
+          const totalBurnFrames = 230; // 約3.8秒かけてじっくり炭化
+          const progress = Math.min(1.08, frameCount / totalBurnFrames);
+          const currentBurnY = (startY + height + 15) - progress * (height + 35);
+
+          // 1. 燃焼線から常時生み出される火の粉・炭化灰・スモーク粒子
+          if (progress < 1.0) {
+            const spawnCount = Math.floor(4 + Math.random() * 5);
+            for (let s = 0; s < spawnCount; s++) {
+              const px = startX + Math.random() * width;
+              // 火線の不規則な高低差
+              const lineNoise = Math.sin(px * 0.035 + frameCount * 0.1) * 14 + Math.cos(px * 0.09) * 8;
+              const py = currentBurnY + lineNoise;
+
+              const isAsh = Math.random() > 0.45;
+              particles.push({
+                x: px,
+                y: py,
+                vx: (Math.random() - 0.5) * 2.2,
+                vy: -(1.5 + Math.random() * 4.2),
+                size: isAsh ? (2 + Math.random() * 4.5) : (1 + Math.random() * 2.5),
+                alpha: 1,
+                rot: Math.random() * Math.PI,
+                vRot: (Math.random() - 0.5) * 0.1,
+                isAsh: isAsh,
+                color: isAsh 
+                  ? (Math.random() > 0.5 ? '#1a1816' : '#3d3835') 
+                  : (Math.random() > 0.4 ? '#fef08a' : (Math.random() > 0.5 ? '#f97316' : '#ef4444'))
+              });
+            }
+          }
+
+          // 2. 灰と火の粉の描画
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.x += p.vx + Math.sin(frameCount * 0.08 + p.y * 0.02) * 0.6;
+            p.y += p.vy;
+            p.rot += p.vRot;
+            p.alpha -= p.isAsh ? 0.007 : 0.015;
+
+            if (p.alpha <= 0) {
+              particles.splice(i, 1);
+              continue;
+            }
+
+            ctx2d.save();
+            ctx2d.translate(p.x, p.y);
+            ctx2d.rotate(p.rot);
+            ctx2d.globalAlpha = Math.max(0, p.alpha);
+
+            if (p.isAsh) {
+              // 不規則な炭化灰片（ヒラヒラ舞う）
+              ctx2d.fillStyle = p.color;
+              ctx2d.fillRect(-p.size / 2, -p.size / 3, p.size, p.size * 0.7);
+            } else {
+              // 輝く白熱スパーク
+              ctx2d.fillStyle = p.color;
+              ctx2d.shadowColor = '#f59e0b';
+              ctx2d.shadowBlur = 8;
+              ctx2d.beginPath();
+              ctx2d.arc(0, 0, p.size, 0, Math.PI * 2);
+              ctx2d.fill();
+            }
+            ctx2d.restore();
+          }
+
+          // 3. 多重熱変色グラデーション & 炭化領域 (Scorched & Charred Body)
+          if (progress > 0.02) {
+            ctx2d.save();
+            
+            // 下部の焼き尽くされた虚無（背景色で便箋下方を覆う）
+            const burnLinePts = [];
+            const stepW = 8;
+            for (let bx = startX - 10; bx <= startX + width + 10; bx += stepW) {
+              const nY = currentBurnY 
+                + Math.sin(bx * 0.035 + frameCount * 0.08) * 12 
+                + Math.sin(bx * 0.09 - frameCount * 0.05) * 6;
+              burnLinePts.push({ x: bx, y: nY });
+            }
+
+            // 焼失領域（背景漆黒）の塗りつぶし
+            ctx2d.beginPath();
+            ctx2d.moveTo(startX - 15, startY + height + 20);
+            ctx2d.lineTo(burnLinePts[0].x, burnLinePts[0].y);
+            for (let pt of burnLinePts) {
+              ctx2d.lineTo(pt.x, pt.y);
+            }
+            ctx2d.lineTo(startX + width + 15, startY + height + 20);
+            ctx2d.closePath();
+            ctx2d.fillStyle = '#0f0f11'; // 背景と同化して消失させる
+            ctx2d.fill();
+
+            // 4. 深い炭化帯（漆黒・焦げつきの縁取りバンド）
+            ctx2d.beginPath();
+            ctx2d.moveTo(burnLinePts[0].x, burnLinePts[0].y - 28);
+            for (let pt of burnLinePts) {
+              const charOffset = Math.sin(pt.x * 0.08) * 6 + 18;
+              ctx2d.lineTo(pt.x, pt.y - charOffset);
+            }
+            for (let k = burnLinePts.length - 1; k >= 0; k--) {
+              ctx2d.lineTo(burnLinePts[k].x, burnLinePts[k].y + 4);
+            }
+            ctx2d.closePath();
+            const charGrad = ctx2d.createLinearGradient(0, currentBurnY - 30, 0, currentBurnY + 5);
+            charGrad.addColorStop(0, 'rgba(43, 24, 12, 0)');
+            charGrad.addColorStop(0.35, 'rgba(30, 16, 8, 0.75)');
+            charGrad.addColorStop(0.75, 'rgba(12, 10, 8, 0.95)');
+            charGrad.addColorStop(1, '#080605');
+            ctx2d.fillStyle = charGrad;
+            ctx2d.fill();
+
+            // 5. 熱変色ゾーン（飴色・セピアの熱波が上へ先回りして炙る）
+            const scorchAhead = Math.min(height * 0.35, 75);
+            const scorchGrad = ctx2d.createLinearGradient(0, currentBurnY - scorchAhead, 0, currentBurnY - 15);
+            scorchGrad.addColorStop(0, 'rgba(180, 83, 9, 0)');
+            scorchGrad.addColorStop(0.5, 'rgba(146, 64, 14, 0.28)');
+            scorchGrad.addColorStop(1, 'rgba(92, 40, 10, 0.7)');
+            ctx2d.fillStyle = scorchGrad;
+            ctx2d.fillRect(startX, Math.max(startY, currentBurnY - scorchAhead), width, scorchAhead);
+
+            // 6. 白熱する燃焼火線（Ember Edge: 真紅 ➔ 橙 ➔ 白熱イエロー）
+            // 外側：真紅・朱色の熱グロー
+            ctx2d.beginPath();
+            ctx2d.moveTo(burnLinePts[0].x, burnLinePts[0].y);
+            for (let pt of burnLinePts) {
+              ctx2d.lineTo(pt.x, pt.y);
+            }
+            ctx2d.strokeStyle = 'rgba(239, 68, 68, 0.9)';
+            ctx2d.lineWidth = 10;
+            ctx2d.shadowColor = '#ef4444';
+            ctx2d.shadowBlur = 18;
+            ctx2d.stroke();
+
+            // 中間：鮮烈なオレンジ熱線
+            ctx2d.beginPath();
+            ctx2d.moveTo(burnLinePts[0].x, burnLinePts[0].y);
+            for (let pt of burnLinePts) {
+              ctx2d.lineTo(pt.x, pt.y);
+            }
+            ctx2d.strokeStyle = '#f59e0b';
+            ctx2d.lineWidth = 5;
+            ctx2d.shadowColor = '#f59e0b';
+            ctx2d.shadowBlur = 12;
+            ctx2d.stroke();
+
+            // 中心：灼熱の白熱コア（極細ホワイト・イエロー）
+            ctx2d.beginPath();
+            ctx2d.moveTo(burnLinePts[0].x, burnLinePts[0].y);
+            for (let pt of burnLinePts) {
+              ctx2d.lineTo(pt.x, pt.y);
+            }
+            ctx2d.strokeStyle = '#fffbeb';
+            ctx2d.lineWidth = 2;
+            ctx2d.shadowColor = '#ffffff';
+            ctx2d.shadowBlur = 8;
+            ctx2d.stroke();
+
+            ctx2d.restore();
+          }
+        } else if (currentMode === 'void') {
+          const centerX = startX + width / 2;
+          const centerY = startY + height / 2;
+
+          // フェーズ1: 1点への螺旋凝縮 (フレーム 1〜65)
+          if (frameCount < 65) {
+            particles.forEach(p => {
+              p.angle += p.speed;
+              p.dist *= 0.94;
+              const px = p.cx + Math.cos(p.angle) * p.dist;
+              const py = p.cy + Math.sin(p.angle) * p.dist;
+              ctx2d.fillStyle = p.color;
+              ctx2d.globalAlpha = p.alpha;
+              ctx2d.beginPath();
+              ctx2d.arc(px, py, p.size, 0, Math.PI * 2);
+              ctx2d.fill();
+            });
+
+            // 中心特異点の光る凝縮コア
+            const coreRadius = Math.max(2, 18 - (frameCount * 0.25));
+            ctx2d.beginPath();
+            ctx2d.arc(centerX, centerY, coreRadius, 0, Math.PI * 2);
+            ctx2d.fillStyle = '#ffffff';
+            ctx2d.shadowColor = '#c084fc';
+            ctx2d.shadowBlur = 25;
+            ctx2d.fill();
+            ctx2d.shadowBlur = 0;
+
+          } else if (frameCount === 65) {
+            // フェーズ2: 一瞬の静寂ののち、超新星大爆発（Big Bang）発動！
+            exploded = true;
+            playSupernovaSound();
+            particles = [];
+            shockwaveRadius = 8;
+
+            const colors = ['#ffffff', '#67e8f9', '#a855f7', '#ec4899', '#facc15', '#38bdf8', '#fb7171'];
+            for (let k = 0; k < 300; k++) {
+              const ang = Math.random() * Math.PI * 2;
+              const vel = 3 + Math.random() * 18;
+              particles.push({
+                x: centerX,
+                y: centerY,
+                vx: Math.cos(ang) * vel,
+                vy: Math.sin(ang) * vel,
+                size: 1.5 + Math.random() * 4.5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                alpha: 1,
+                drag: 0.94 + Math.random() * 0.04
+              });
+            }
+          } else {
+            // フェーズ3: 爆発衝撃波リング & 全画面星屑拡散
+            shockwaveRadius += 14;
+            const shockAlpha = Math.max(0, 1 - shockwaveRadius / (width * 1.5));
+            if (shockAlpha > 0) {
+              ctx2d.save();
+              ctx2d.beginPath();
+              ctx2d.arc(centerX, centerY, shockwaveRadius, 0, Math.PI * 2);
+              ctx2d.lineWidth = Math.max(1, 10 * shockAlpha);
+              ctx2d.strokeStyle = `rgba(168, 85, 247, ${shockAlpha})`;
+              ctx2d.shadowColor = '#67e8f9';
+              ctx2d.shadowBlur = 20;
+              ctx2d.stroke();
+              ctx2d.restore();
+            }
+
+            particles.forEach(p => {
+              p.x += p.vx;
+              p.y += p.vy;
+              p.vx *= p.drag;
+              p.vy *= p.drag;
+              p.alpha -= 0.012;
+              if (p.alpha > 0) {
+                ctx2d.fillStyle = p.color;
+                ctx2d.globalAlpha = Math.max(0, p.alpha);
+                ctx2d.shadowColor = p.color;
+                ctx2d.shadowBlur = 8;
+                ctx2d.beginPath();
+                ctx2d.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx2d.fill();
+                ctx2d.shadowBlur = 0;
+              }
+            });
+          }
+        }
+
+        const maxFrames = currentMode === 'burn' ? 245 : (currentMode === 'void' ? 145 : 110);
+        if (frameCount < maxFrames) {
+          animReq = requestAnimationFrame(loop);
+        } else {
+          completeDisposal();
+        }
+      }
+
+      animReq = requestAnimationFrame(loop);
+    }
+
+    function completeDisposal() {
+      if (animReq) cancelAnimationFrame(animReq);
+      ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+
+      // メモリ上のデータ完全抹消 (保存ゼロ保証)
+      textarea.value = '';
+      charCounter.textContent = '0 文字';
+
+      // 画面切り替え
+      document.getElementById('input-view').style.display = 'none';
+      document.getElementById('care-view').style.display = 'flex';
+
+      startBreatheCycle();
+      isExecuting = false;
+      btnExec.disabled = false;
+    }
+
+    /* --- 深呼吸ガイド システム --- */
+    const BREATH_PLANS = {
+      '478': {
+        name: '4-7-8 呼吸法',
+        icon: '🌙',
+        title: '4-7-8 呼吸法（脱力・安眠・強い興奮の鎮静）',
+        desc: '吸う時間の2倍かけて細く長く吐き出すことで、副交感神経を強く刺激。高ぶった感情やイライラを脱力させ、心身を急速に落ち着かせます。',
+        steps: [
+          { action: 'すって', sec: 4, text: '鼻から静かに息を吸い込みます (4秒)', phase: 'inhale' },
+          { action: 'とめて', sec: 7, text: '息を止め、肩の力を抜きます (7秒)', phase: 'hold' },
+          { action: 'はいて', sec: 8, text: '口から細く長くゆっくり息を吐き出します (8秒)', phase: 'exhale' }
+        ]
+      },
+      'box': {
+        name: 'ボックス呼吸',
+        icon: '🛡️',
+        title: 'ボックス呼吸（Navy SEALs式・平常心と集中）',
+        desc: '米海軍特殊部隊も採用する均等な4辺のリズム。極度の動揺やパニックを鎮静化させ、マインドの明晰さと冷静さを取り戻します。',
+        steps: [
+          { action: 'すって', sec: 4, text: '4秒かけて静かに息を吸い込みます', phase: 'inhale' },
+          { action: 'とめて', sec: 4, text: '肺を満たしたまま息を止めます', phase: 'hold' },
+          { action: 'はいて', sec: 4, text: '4秒かけて均等に息を吐き出します', phase: 'exhale' },
+          { action: 'とめて', sec: 4, text: '肺を空の状態で静かに止めます', phase: 'hold' }
+        ]
+      },
+      'sigh': {
+        name: '生理的ため息',
+        icon: '⚡',
+        title: '生理的ため息 / サイクリック・サイイング（即効リセット）',
+        desc: 'スタンフォード大学の研究で実証された即効鎮静法。二段吸気で肺胞を一気に広げ、長いため息で瞬時に自律神経を脱力させます。',
+        steps: [
+          { action: '深くすって', sec: 3, text: '鼻から大きく息を深く吸い込みます', phase: 'inhale' },
+          { action: 'もう一段吸う', sec: 1, text: '限界から「キュッ」ともう一段吸い足します', phase: 'inhale' },
+          { action: 'ため息で吐く', sec: 6, text: '口から「はぁ〜」と長いため息で脱力して吐き切ります', phase: 'exhale' }
+        ]
+      },
+      '2to1': {
+        name: '2:1 呼吸法',
+        icon: '🍃',
+        title: '2:1 呼吸法（息止めなし・自然な脱力）',
+        desc: '息を止めるステップがないため息苦しさを感じにくい初心者向け。「吸う時間1に対して吐く時間2」のリズムで自然に心拍を落ち着かせます。',
+        steps: [
+          { action: 'すって', sec: 4, text: '自然な深さで息を吸い込みます (4秒)', phase: 'inhale' },
+          { action: 'ながくはいて', sec: 8, text: '倍の時間をかけてゆっくりと息を吐き切ります (8秒)', phase: 'exhale' }
+        ]
+      }
+    };
+
+    let selectedPlan = '478';
+    let stepIndex = 0;
+    let secLeft = 4;
+    let timerId = null;
+    let isBreatheRunning = true;
+
+    const bubbleEl = document.getElementById('breathe-bubble');
+    const bubbleAction = document.getElementById('bubble-action');
+    const bubbleCount = document.getElementById('bubble-count');
+    const guideMsg = document.getElementById('breathe-guide-msg');
+
+    function setBreathingPattern(key) {
+      if (!BREATH_PLANS[key]) return;
+      selectedPlan = key;
+
+      ['478', 'box', 'sigh', '2to1'].forEach(k => {
+        const btn = document.getElementById(`tab-${k}`);
+        btn.classList.toggle('active', k === key);
+      });
+
+      const plan = BREATH_PLANS[key];
+      document.getElementById('cur-pattern-name').textContent = plan.name;
+      document.getElementById('card-pattern-icon').textContent = plan.icon;
+      document.getElementById('card-pattern-title').textContent = plan.title;
+      document.getElementById('card-pattern-desc').textContent = plan.desc;
+
+      startBreatheCycle();
+    }
+
+    function startBreatheCycle() {
+      if (timerId) clearInterval(timerId);
+      isBreatheRunning = true;
+      stepIndex = 0;
+      secLeft = BREATH_PLANS[selectedPlan].steps[0].sec;
+      updateBubbleUI();
+
+      timerId = setInterval(() => {
+        if (!isBreatheRunning) return;
+        secLeft--;
+        bubbleCount.textContent = secLeft;
+
+        if (secLeft <= 0) {
+          const steps = BREATH_PLANS[selectedPlan].steps;
+          stepIndex = (stepIndex + 1) % steps.length;
+          secLeft = steps[stepIndex].sec;
+          updateBubbleUI();
+        }
+      }, 1000);
+    }
+
+    function updateBubbleUI() {
+      const step = BREATH_PLANS[selectedPlan].steps[stepIndex];
+      bubbleAction.textContent = step.action;
+      bubbleCount.textContent = secLeft;
+      guideMsg.textContent = step.text;
+
+      bubbleEl.className = 'breathe-bubble';
+      if (step.phase === 'inhale') {
+        bubbleEl.classList.add('phase-inhale');
+      } else if (step.phase === 'hold') {
+        bubbleEl.classList.add('phase-hold');
+      } else {
+        bubbleEl.classList.add('phase-exhale');
+      }
+    }
+
+    function toggleBreathe() {
+      isBreatheRunning = !isBreatheRunning;
+      const btn = document.getElementById('btn-pause-breathe');
+      if (isBreatheRunning) {
+        btn.innerHTML = '<span>⏸️</span><span>一時停止</span>';
+      } else {
+        btn.innerHTML = '<span>▶️</span><span>再開</span>';
+      }
+    }
+
+    function resetApp() {
+      if (timerId) clearInterval(timerId);
+      isBreatheRunning = false;
+
+      // リセット
+      document.getElementById('care-view').style.display = 'none';
+      document.getElementById('input-view').style.display = 'flex';
+
+      paperBox.style.transition = 'none';
+      paperBox.style.opacity = '1';
+      paperBox.style.transform = 'none';
+      paperBox.style.filter = 'none';
+
+      textarea.value = '';
+      charCounter.textContent = '0 文字';
+      textarea.focus();
+    }
+  </script>
+</body>
+</html>
